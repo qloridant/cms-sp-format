@@ -1,0 +1,69 @@
+:root {
+  --bleu: #000091;
+  --bleu-clair: #e3e3fd;
+  --bleu-texte: #0063cb;
+  --rouge: #ce0500;
+  --texte: #161616;
+  --gris: #666666;
+  --bordure: #dddddd;
+  --fond: #f6f6f6;
+  --blanc: #ffffff;
+  --font: 'Marianne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --mono: 'Menlo', 'Consolas', monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--font); color: var(--texte); background: var(--fond); }
+
+/* champ texte / select / textarea */
+.inp {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  color: var(--texte);
+  padding: 8px 11px;
+  border: 1px solid var(--bordure);
+  border-bottom: 2px solid #3a3a3a;
+  border-radius: 4px 4px 0 0;
+  background: #eeeeee;
+  outline: none;
+}
+.inp:focus { outline: 2px solid var(--bleu); outline-offset: 1px; }
+textarea.inp { resize: vertical; min-height: 64px; }
+
+/* boutons */
+.mini {
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--bordure);
+  background: var(--blanc);
+  color: var(--texte);
+}
+.mini.on { border-color: var(--bleu); background: var(--bleu); color: var(--blanc); }
+.mini.danger { color: var(--rouge); border-color: var(--rouge); }
+.mini:disabled { opacity: 0.4; cursor: default; }
+.mini.block { width: 100%; padding: 10px 0; font-size: 13px; }
+
+/* cartes & champs */
+.card {
+  background: var(--blanc);
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  padding: 18px 18px 6px;
+  margin-bottom: 16px;
+}
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-head h2 { margin: 0; font-size: 15px; font-weight: 700; color: var(--bleu); }
+
+.field { display: block; margin-bottom: 14px; }
+.field .lbl { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field .hint { display: block; font-size: 12px; color: var(--gris); margin-bottom: 5px; }
+
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; }
