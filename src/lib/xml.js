@@ -43,8 +43,11 @@ function titreRicheXml(txt, tag, ind) { return `${ind}<${tag}><Paragraphe>${inli
 
 // ---------------------------------------------------------------- todolist (Liste type="caseACocher")
 function itemXml(it, ind) {
-  const cond = it.condVar?.trim()
-    ? `${ind}  <Condition><${it.condVal === "faux" ? "estFaux" : "estVrai"} var="${esc(it.condVar)}"/></Condition>\n`
+  const conds = (it.conds || []).filter((c) => c.var.trim());
+  const cond = conds.length
+    ? `${ind}  <Condition>\n` +
+      conds.map((c) => `${ind}  ${I}<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`).join("\n") +
+      `\n${ind}  </Condition>\n`
     : "";
   return `${ind}<Item>\n${cond}${para(it.texte, ind + "  ")}\n${ind}</Item>`;
 }

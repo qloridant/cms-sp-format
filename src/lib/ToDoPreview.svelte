@@ -4,13 +4,20 @@
   let { items, vars = null } = $props();
 
   function resolved(it) {
-    if (!it.condVar) return "always";
-    if (vars && it.condVar in vars) {
-      return vars[it.condVar] === (it.condVal !== "faux") ? "show" : "hide";
+    const conds = (it.conds || []).filter((c) => c.var.trim());
+    if (!conds.length) return "always";
+    let sawUnknown = false;
+    for (const c of conds) {
+      if (vars && c.var in vars) {
+        if (vars[c.var] !== (c.val !== "faux")) return "hide";
+      } else {
+        sawUnknown = true;
+      }
     }
-    return "badge";
+    return sawUnknown ? "badge" : "show";
   }
   const visibles = $derived(items.filter((it) => it.texte.trim() && resolved(it) !== "hide"));
+  const condsLabel = (it) => (it.conds || []).filter((c) => c.var.trim()).map((c) => `${c.var} = ${c.val || "vrai"}`).join(" ET ");
 </script>
 
 <ul class="todo">
@@ -18,7 +25,7 @@
     <li class="trow" class:cond={resolved(it) === "badge"}>
       <span class="box" aria-hidden="true"></span>
       <span class="txt"><Inline text={it.texte} /></span>
-      {#if resolved(it) === "badge"}<span class="badge">si {it.condVar} = {it.condVal || "vrai"}</span>{/if}
+      {#if resolved(it) === "badge"}<span class="badge">si {condsLabel(it)}</span>{/if}
     </li>
   {/each}
 </ul>

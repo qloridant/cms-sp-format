@@ -33,11 +33,11 @@ function titreRiche(titreEl) {
 // ---------------------------------------------------------------- todolist
 function parseCondition(el) {
   const cond = childL(el, "Condition");
-  if (!cond) return { condVar: "", condVal: "vrai" };
-  const v = childL(cond, "estVrai"), f = childL(cond, "estFaux");
-  if (v) return { condVar: v.getAttribute("var") || "", condVal: "vrai" };
-  if (f) return { condVar: f.getAttribute("var") || "", condVal: "faux" };
-  return { condVar: "", condVal: "vrai" };
+  if (!cond) return { conds: [] };
+  const conds = els(cond)
+    .filter((c) => c.localName === "estVrai" || c.localName === "estFaux")
+    .map((c) => ({ id: uid(), var: c.getAttribute("var") || "", val: c.localName === "estFaux" ? "faux" : "vrai" }));
+  return { conds };
 }
 function parseTodolists(texteEl) {
   if (!texteEl) return [];

@@ -32,8 +32,8 @@
     },
     todolists: [
       { cid: uid(), titre: "Pièces à fournir", items: [
-        { id: uid(), texte: "Photo d'identité récente", condVar: "", condVal: "vrai" },
-        { id: uid(), texte: "Justificatif de domicile", condVar: "", condVal: "vrai" },
+        { id: uid(), texte: "Photo d'identité récente", conds: [] },
+        { id: uid(), texte: "Justificatif de domicile", conds: [] },
       ] },
     ],
     conclusionTitre: "", conclusion: "",
