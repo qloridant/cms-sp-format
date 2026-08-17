@@ -2,6 +2,7 @@
   import { uid } from "./xml.js";
   import { parseRechercheGuidee } from "./parse.js";
   import BrancheEditor from "./BrancheEditor.svelte";
+  import CondsEditor from "./CondsEditor.svelte";
   let { questionnaire } = $props();
 
   const addQuestion = () =>
@@ -68,6 +69,13 @@
         </div>
         <input class="inp mb" placeholder="Intitulé de la question" bind:value={qu.titre} />
 
+        <div class="conds">
+          <CondsEditor owner={qu} />
+          {#if qu.conds?.length}
+            <p class="condnote">Cette question n'est posée que si la condition est vérifiée par les réponses précédentes (extension locale du schéma — voir schema/librairie/publication.lib.xsd).</p>
+          {/if}
+        </div>
+
         {#each qu.choix as c, ci (c.chid)}
           <div class="choix">
             <div class="row mb">
@@ -131,6 +139,8 @@
   .qhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .tag { font-size: 12px; font-weight: 700; color: var(--gris); }
   .choix { border: 1px solid var(--bordure); border-radius: 4px; padding: 10px; margin-bottom: 8px; background: var(--blanc); }
+  .conds { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--bordure); }
+  .condnote { margin: 6px 0 0; font-size: 11px; color: var(--gris); font-style: italic; }
   .affect { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
   .affect span { font-size: 12px; color: var(--gris); }
   .affect .val { max-width: 90px; }

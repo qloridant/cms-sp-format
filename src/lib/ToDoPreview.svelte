@@ -3,21 +3,30 @@
 
   let { items, vars = null } = $props();
 
+  // Groupes ET-és, termes OU-és au sein d'un groupe. "badge" = condition pas encore
+  // tranchée (au moins une variable pas encore répondue) : on affiche quand même, avec
+  // une pastille, pour que la rédaction reste consultable sans avoir tout répondu.
+  function groupes(it) {
+    return (it.conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
+  }
   function resolved(it) {
-    const conds = (it.conds || []).filter((c) => c.var.trim());
-    if (!conds.length) return "always";
+    const gs = groupes(it);
+    if (!gs.length) return "always";
     let sawUnknown = false;
-    for (const c of conds) {
-      if (vars && c.var in vars) {
-        if (vars[c.var] !== (c.val !== "faux")) return "hide";
-      } else {
-        sawUnknown = true;
-      }
+    for (const terms of gs) {
+      const connu = vars ? terms.filter((c) => c.var in vars) : [];
+      if (connu.some((c) => vars[c.var] === (c.val !== "faux"))) continue; // groupe (OU) vérifié
+      if (connu.length < terms.length) sawUnknown = true; // un terme du groupe pas encore répondu
+      else return "hide"; // groupe entièrement connu et aucun terme vérifié
     }
     return sawUnknown ? "badge" : "show";
   }
   const visibles = $derived(items.filter((it) => it.texte.trim() && resolved(it) !== "hide"));
-  const condsLabel = (it) => (it.conds || []).filter((c) => c.var.trim()).map((c) => `${c.var} = ${c.val || "vrai"}`).join(" ET ");
+  const condsLabel = (it) => groupes(it)
+    .map((terms) => terms.length > 1
+      ? "(" + terms.map((c) => `${c.var} = ${c.val || "vrai"}`).join(" OU ") + ")"
+      : `${terms[0].var} = ${terms[0].val || "vrai"}`)
+    .join(" ET ");
 </script>
 
 <ul class="todo">

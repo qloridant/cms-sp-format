@@ -1,13 +1,16 @@
 <script>
   import {
     FICHE_TYPE, AUTO_SURTITRE,
-    buildXml, buildRechercheGuidee, computeVars, paragraphes, uid,
+    buildXml, buildRechercheGuidee, computeVars, condVisible, paragraphes, uid,
   } from "./xml.js";
   import Inline from "./Inline.svelte";
   import ToDo from "./ToDo.svelte";
   import ToDoPreview from "./ToDoPreview.svelte";
   import QuestionnaireEditor from "./QuestionnaireEditor.svelte";
   import BranchePreview from "./BranchePreview.svelte";
+  import SituationsEditor from "./SituationsEditor.svelte";
+  import SituationsPreview from "./SituationsPreview.svelte";
+  import CondsEditor from "./CondsEditor.svelte";
   import { parseXml } from "./parse.js";
   import { validate } from "./validate.js";
 
@@ -36,6 +39,7 @@
         { id: uid(), texte: "Justificatif de domicile", conds: [] },
       ] },
     ],
+    situations: { affichage: "onglet", list: [] },
     conclusionTitre: "", conclusion: "",
   });
 
@@ -52,6 +56,9 @@
     if (surTitreAuto) d.surTitre = AUTO_SURTITRE;
   });
   const vars = $derived(computeVars(d.questionnaire, answers));
+  // Les conditions ne sont vérifiables que face à un questionnaire plat déjà répondu ;
+  // en mode arbre, on ne masque rien faute de suivi de variables.
+  const previewVars = $derived(d.questionnaire.mode === "plat" ? vars : null);
   const varNames = $derived.by(() => {
     const s = new Set();
     d.questionnaire.questions.forEach((qu) => qu.choix.forEach((c) => (c.affect || []).forEach((a) => a.var.trim() && s.add(a.var))));
@@ -82,7 +89,7 @@
     e.target.value = "";
   }
 
-  const addTodolist = () => d.todolists.push({ cid: uid(), titre: "", items: [] });
+  const addTodolist = () => d.todolists.push({ cid: uid(), titre: "", conds: [], items: [] });
   const rmTodolist = (ci) => d.todolists.splice(ci, 1);
 
   function downloadBlob(content, filename) {
@@ -155,10 +162,15 @@
           <button class="mini danger" onclick={() => rmTodolist(ci)}>Supprimer</button>
         </div>
         <label class="field"><span class="lbl">Titre (facultatif)</span><input class="inp" bind:value={c.titre} /></label>
+        <div class="conds mb">
+          <CondsEditor owner={c} />
+        </div>
         <ToDo items={c.items} />
       </section>
     {/each}
     <button class="mini on block mb16" onclick={addTodolist}>+ Ajouter une todolist</button>
+
+    <SituationsEditor situations={d.situations} />
 
     <section class="card">
       <div class="card-head"><h2>Conclusion</h2></div>
@@ -227,7 +239,7 @@
           {:else if d.questionnaire.questions.some((qu) => qu.titre.trim())}
             <div class="qbox">
               {#if d.questionnaire.description.trim()}<p class="qdesc">{d.questionnaire.description}</p>{/if}
-              {#each d.questionnaire.questions.filter((qu) => qu.titre.trim()) as qu (qu.qid)}
+              {#each d.questionnaire.questions.filter((qu) => qu.titre.trim() && condVisible(qu.conds, vars)) as qu (qu.qid)}
                 <div class="qrow">
                   <div class="qtitle"><Inline text={qu.titre} /></div>
                   <div class="btns">
@@ -243,12 +255,14 @@
             </div>
           {/if}
 
-          {#each d.todolists as c (c.cid)}
+          {#each d.todolists.filter((c) => condVisible(c.conds, previewVars)) as c (c.cid)}
             <section class="chapter">
               {#if c.titre.trim()}<h2><Inline text={c.titre} /></h2>{/if}
-              <ToDoPreview items={c.items} vars={d.questionnaire.mode === "plat" ? vars : null} />
+              <ToDoPreview items={c.items} vars={previewVars} />
             </section>
           {/each}
+
+          <SituationsPreview situations={d.situations} vars={previewVars} />
 
           {#if d.conclusion.trim()}
             <section class="concl">
@@ -281,6 +295,7 @@
   .auto { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 400; }
   .auto input { margin: 0; }
   .mb16 { margin-bottom: 16px; }
+  .conds { padding-top: 6px; border-top: 1px dashed var(--bordure); }
   textarea.tall { min-height: 72px; }
 
   /* aperçu */

@@ -37,5 +37,25 @@ export function validate(xmlString) {
     if (!assigned.has(v)) issues.push({ level: "warn", msg: `Variable « ${v} » testée par un élément mais jamais définie par le questionnaire.` });
   });
 
+  // ordre des questions : une <Question><Condition> ne doit référencer que des
+  // variables déjà affectées par une question précédente, sinon elle n'apparaîtra jamais.
+  const questionnaireEl = Array.from(root.children).find((c) => c.localName === "Questionnaire");
+  if (questionnaireEl) {
+    const assignedSoFar = new Set();
+    Array.from(questionnaireEl.children).filter((c) => c.localName === "Question").forEach((qu) => {
+      const condEl = Array.from(qu.children).find((c) => c.localName === "Condition");
+      if (condEl) {
+        [...condEl.getElementsByTagName("estVrai"), ...condEl.getElementsByTagName("estFaux")]
+          .map((e) => e.getAttribute("var")).filter(Boolean).forEach((v) => {
+            if (!assignedSoFar.has(v)) {
+              issues.push({ level: "warn", msg: `Question conditionnée par « ${v} », non affectée par une question précédente : elle n'apparaîtra jamais.` });
+            }
+          });
+      }
+      [...qu.getElementsByTagName("affecteVrai"), ...qu.getElementsByTagName("affecteFaux")]
+        .forEach((e) => { const v = e.getAttribute("var"); if (v) assignedSoFar.add(v); });
+    });
+  }
+
   return issues;
 }

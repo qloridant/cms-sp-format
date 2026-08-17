@@ -41,15 +41,26 @@ const para = (txt, ind) => `${ind}<Paragraphe>${inlineXml(txt)}</Paragraphe>`;
 const I = "  ";
 function titreRicheXml(txt, tag, ind) { return `${ind}<${tag}><Paragraphe>${inlineXml(txt)}</Paragraphe></${tag}>`; }
 
+// Sérialise une <Condition> : conds = groupes ET-és entre eux ("Afficher si … ET …"),
+// chaque groupe étant une liste de termes OU-és entre eux ({ id, terms: [{var,val}] }).
+// Un groupe à un seul terme reste un simple estVrai/estFaux ; à plusieurs, il est enveloppé
+// dans <ou> (cf. GroupeConditionElts du schéma, qui autorise estVrai/estFaux/et/ou/non).
+const term = (c) => `<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`;
+function conditionXml(conds, ind) {
+  const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
+  if (!groupes.length) return "";
+  const body = groupes.map((terms) =>
+    terms.length === 1
+      ? `${ind}${I}${term(terms[0])}`
+      : `${ind}${I}<ou>\n${terms.map((c) => `${ind}${I}${I}${term(c)}`).join("\n")}\n${ind}${I}</ou>`
+  ).join("\n");
+  return `${ind}<Condition>\n${body}\n${ind}</Condition>`;
+}
+
 // ---------------------------------------------------------------- todolist (Liste type="caseACocher")
 function itemXml(it, ind) {
-  const conds = (it.conds || []).filter((c) => c.var.trim());
-  const cond = conds.length
-    ? `${ind}  <Condition>\n` +
-      conds.map((c) => `${ind}  ${I}<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`).join("\n") +
-      `\n${ind}  </Condition>\n`
-    : "";
-  return `${ind}<Item>\n${cond}${para(it.texte, ind + "  ")}\n${ind}</Item>`;
+  const cond = conditionXml(it.conds, ind + "  ");
+  return `${ind}<Item>\n${cond ? cond + "\n" : ""}${para(it.texte, ind + "  ")}\n${ind}</Item>`;
 }
 function listeCocherXml(items, ind) {
   const valides = items.filter((it) => it.texte.trim());
@@ -61,13 +72,35 @@ function todolistsXml(lists, ind) {
   if (!valides.length) return "";
   return valides.map((c) => {
     const titre = c.titre.trim() ? `${ind}  <Titre><Paragraphe>${inlineXml(c.titre)}</Paragraphe></Titre>\n` : "";
+    const cond = conditionXml(c.conds, ind + "  ");
     const liste = listeCocherXml(c.items, ind + "  ");
-    return `${ind}<Chapitre>\n${titre}${liste}\n${ind}</Chapitre>`;
+    return `${ind}<Chapitre>\n${titre}${cond ? cond + "\n" : ""}${liste}\n${ind}</Chapitre>`;
   }).join("\n");
 }
+function texteBlockXml(lists, ind) {
+  const chaps = todolistsXml(lists, ind + "  ");
+  return chaps ? `${ind}<Texte>\n${chaps}\n${ind}</Texte>` : "";
+}
 function texteXml(d) {
-  const chaps = todolistsXml(d.todolists, I + I);
-  return chaps ? `${I}<Texte>\n${chaps}\n${I}</Texte>` : "";
+  return texteBlockXml(d.todolists, I);
+}
+
+// ---------------------------------------------------------------- situations (ListeSituations, onglets/séquentiel)
+// <Situation><Titre> est un xs:string brut (pas de gras/lien, contrairement aux autres titres).
+function situationXml(s, ind) {
+  const titre = `${ind}  <Titre>${esc(s.titre)}</Titre>`;
+  const cond = conditionXml(s.conds, ind + "  ");
+  const texte = texteBlockXml(s.todolists, ind + "  ");
+  const parts = [titre, cond, texte].filter(Boolean);
+  return `${ind}<Situation>\n${parts.join("\n")}\n${ind}</Situation>`;
+}
+export function situationsXml(d) {
+  const valides = (d.situations?.list || []).filter(
+    (s) => s.titre.trim() && s.todolists.some((c) => c.titre.trim() || c.items.some((it) => it.texte.trim()))
+  );
+  if (!valides.length) return "";
+  const body = valides.map((s) => situationXml(s, I + I)).join("\n");
+  return `${I}<ListeSituations affichage="${esc(d.situations.affichage || "onglet")}">\n${body}\n${I}</ListeSituations>`;
 }
 
 // ---------------------------------------------------------------- questionnaire plat
@@ -85,7 +118,8 @@ function questionnaireXml(q) {
         : "";
       return `${I}${I}${I}<Choix>\n${titreRicheXml(c.titre, "Titre", I + I + I + I)}${si ? "" : "\n" + I + I + I}${si}</Choix>`;
     }).join("\n");
-    return `${I}${I}<Question>\n${titreRicheXml(qu.titre, "Titre", I + I + I)}\n${choix}\n${I}${I}</Question>`;
+    const cond = conditionXml(qu.conds, I + I + I);
+    return `${I}${I}<Question>\n${cond ? cond + "\n" : ""}${titreRicheXml(qu.titre, "Titre", I + I + I)}\n${choix}\n${I}${I}</Question>`;
   }).join("\n");
   return `${I}<Questionnaire>\n${desc}${body}\n${I}</Questionnaire>`;
 }
@@ -96,6 +130,17 @@ export function computeVars(q, answers) {
     if (ch) (ch.affect || []).forEach((a) => { if (a.var.trim()) v[a.var] = a.val !== "faux"; });
   });
   return v;
+}
+// Visibilité d'un élément conditionné (Question, Situation, Chapitre…) selon les variables
+// déjà connues. Groupes ET-és entre eux, termes OU-és au sein d'un groupe (un groupe est
+// vrai dès qu'un de ses termes correspond). vars === null signifie "pas de suivi de
+// variables dans ce contexte" (ex. mode arbre) : on ne masque alors rien. Une variable pas
+// encore affectée dans un vars connu masque l'élément (affichage progressif tant que non répondue).
+export function condVisible(conds, vars) {
+  const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
+  if (!groupes.length) return true;
+  if (!vars) return true;
+  return groupes.every((terms) => terms.some((c) => vars[c.var] === (c.val !== "faux")));
 }
 
 // ---------------------------------------------------------------- recherche guidée (arbre)
@@ -180,6 +225,7 @@ export function buildXml(d) {
     const ps = paragraphes(d.conclusion).map((p) => para(p, I + I)).join("\n");
     out.push(`${I}<Conclusion>\n${titre}${ps}\n${I}</Conclusion>`);
   }
+  const situations = situationsXml(d); if (situations) out.push(situations);
   out.push("</Publication>");
   return out.join("\n");
 }

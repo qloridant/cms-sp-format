@@ -31,12 +31,20 @@ function titreRiche(titreEl) {
 }
 
 // ---------------------------------------------------------------- todolist
+const asTerm = (c) => ({ id: uid(), var: c.getAttribute("var") || "", val: c.localName === "estFaux" ? "faux" : "vrai" });
+// conds = groupes ET-és ({ id, terms }), un terme seul ou un <ou> devient un groupe.
+// <et>/<non> imbriqués ne sont pas repris par l'éditeur (non représentables dans l'UI actuelle).
 function parseCondition(el) {
   const cond = childL(el, "Condition");
   if (!cond) return { conds: [] };
-  const conds = els(cond)
-    .filter((c) => c.localName === "estVrai" || c.localName === "estFaux")
-    .map((c) => ({ id: uid(), var: c.getAttribute("var") || "", val: c.localName === "estFaux" ? "faux" : "vrai" }));
+  const conds = els(cond).map((c) => {
+    if (c.localName === "estVrai" || c.localName === "estFaux") return { id: uid(), terms: [asTerm(c)] };
+    if (c.localName === "ou") {
+      const terms = els(c).filter((t) => t.localName === "estVrai" || t.localName === "estFaux").map(asTerm);
+      return terms.length ? { id: uid(), terms } : null;
+    }
+    return null;
+  }).filter(Boolean);
   return { conds };
 }
 function parseTodolists(texteEl) {
@@ -46,15 +54,28 @@ function parseTodolists(texteEl) {
     const items = liste
       ? childrenL(liste, "Item").map((it) => ({ id: uid(), texte: parasText(it), ...parseCondition(it) }))
       : [];
-    return { cid: uid(), titre: titreRiche(childL(c, "Titre")), items };
+    return { cid: uid(), titre: titreRiche(childL(c, "Titre")), items, ...parseCondition(c) };
   });
+}
+
+// ---------------------------------------------------------------- situations (ListeSituations)
+function parseSituations(root) {
+  const ls = childL(root, "ListeSituations");
+  if (!ls) return { affichage: "onglet", list: [] };
+  const list = childrenL(ls, "Situation").map((s) => ({
+    id: uid(),
+    titre: txt(childL(s, "Titre")),
+    ...parseCondition(s),
+    todolists: parseTodolists(childL(s, "Texte")),
+  }));
+  return { affichage: ls.getAttribute("affichage") || "onglet", list };
 }
 
 // ---------------------------------------------------------------- questionnaire plat
 function parseQuestionnaire(qEl) {
   const questions = [];
   childrenL(qEl, "Question").forEach((qu) => {
-    const question = { qid: uid(), titre: titreRiche(childL(qu, "Titre")), choix: [] };
+    const question = { qid: uid(), titre: titreRiche(childL(qu, "Titre")), choix: [], ...parseCondition(qu) };
     childrenL(qu, "Choix").forEach((c) => {
       const affect = [];
       const si = childL(c, "SiSelectionne");
@@ -108,6 +129,7 @@ function defaults() {
       arbre: { rgId: "", titre: "", racines: [] },
     },
     todolists: [],
+    situations: { affichage: "onglet", list: [] },
     conclusionTitre: "", conclusion: "",
   };
 }
@@ -145,6 +167,7 @@ export function parseXml(text) {
   }
 
   d.todolists = parseTodolists(childL(root, "Texte"));
+  d.situations = parseSituations(root);
 
   const concl = childL(root, "Conclusion");
   if (concl) {
