@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Publication xmlns:dc="http://purl.org/dc/elements/1.1/"
+  ID="CNMS0001"
+  type="Fiche Comment faire si conditionné"
+  statut="enCoursDeMiseAJour">
+  <dc:title>Je suis affecté à l'étranger</dc:title>
+  <dc:description>Comment faire en cas d'affectation à l'étranger, les pièces à fournir et les délais.</dc:description>
+  <dc:contributor>CNMSS</dc:contributor>
+  <SurTitre>Comment faire si</SurTitre>
+  <Introduction>
+    <Texte>
+      <Paragraphe>&lt;Insérer : Explications Affectation à l'étranger&gt;</Paragraphe>
+    </Texte>
+  </Introduction>
+  <Questionnaire>
+    <Description><Paragraphe>Ma situation</Paragraphe></Description>
+    <Question>
+      <Titre><Paragraphe>Dans quelle zone je suis affecté ?</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Union Européenne</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="ue"/>
+          <affecteVrai var="hors_france"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Polynésie Française</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="polynesie_francaise"/>
+          <affecteVrai var="hors_france"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Nouvelle Calédonie</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="nouvelle_caledonie"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Mayotte</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="mayotte"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Saint Pierre-et-Miquelon</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="saint_pierre_et_miquelon"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Serbie</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="serbie"/>
+          <affecteVrai var="hors_france"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Hors Union Européenne</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="hors_ue"/>
+          <affecteVrai var="hors_france"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+    <Question>
+      <Titre><Paragraphe>Possédez-vous un compte Amélie ?</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Oui</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="amelie"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Non</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="amelie"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+    <Question>
+      <Titre><Paragraphe>Possédez-vous un compte CNMSS ?</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Oui</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="non_cnmss"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Non</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="non_cnmss"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+    <Question>
+      <Titre><Paragraphe>Conjoint(e) accompagnant(e) ?</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Oui, avec ayant-droit</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="conjoint_ayant_droit"/>
+          <affecteVrai var="conjoint_accompagnant"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Oui, non ayant-droit</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="conjoint_non_ayant_droit"/>
+          <affecteVrai var="conjoint_accompagnant"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Non</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="conjoint_ayant_droit"/>
+          <affecteFaux var="conjoint_non_ayant_droit"/>
+          <affecteFaux var="conjoint_accompagnant"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+    <Question>
+      <Titre><Paragraphe>Enfant(s) accompagnant(s) ? (moins de 16 ans, ou moins de 24 ans et sans revenu)</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Oui, avec ayant-droit</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="enfant_ayant_droit"/>
+          <affecteFaux var="enfant_non_ayant_droit"/>
+          <affecteVrai var="enfant_accompagnement"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Oui, non ayant-droit</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="enfant_ayant_droit"/>
+          <affecteVrai var="enfant_non_ayant_droit"/>
+          <affecteVrai var="enfant_accompagnement"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Non</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="enfant_ayant_droit"/>
+          <affecteFaux var="enfant_non_ayant_droit"/>
+          <affecteFaux var="enfant_accompagnement"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+    <Question>
+      <Titre><Paragraphe>Traitement ALD ?</Paragraphe></Titre>
+      <Choix>
+        <Titre><Paragraphe>Oui</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteVrai var="traitement_ald"/>
+        </SiSelectionne>
+      </Choix>
+      <Choix>
+        <Titre><Paragraphe>Non</Paragraphe></Titre>
+        <SiSelectionne>
+          <affecteFaux var="traitement_ald"/>
+        </SiSelectionne>
+      </Choix>
+    </Question>
+  </Questionnaire>
+  <Texte>
+    <Chapitre>
+      <Titre><Paragraphe>Checklist</Paragraphe></Titre>
+      <Liste type="caseACocher">
+        <Item>
+          <Condition>
+            <estVrai var="conjoint_accompagnant"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Affectation à l'étranger :</MiseEnEvidence> Complétez la démarche <LienExterne URL="https://www.youtube.com/watch?v=dQw4w9WgXcQ">&quot;Affectation hors de France ou COM ou Mayotte&quot;.</LienExterne></Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="conjoint_accompagnant"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Droits du conjoint et de la famille :</MiseEnEvidence> Complétez la démarche <LienExterne URL="google.com">&quot;Etudes des droits à l'étranger&quot;</LienExterne> pour votre conjoint(e) qui vous accompagne</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="enfant_accompagnement"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Accompagnement de l'enfant non affilié :</MiseEnEvidence> Transmettez votre livret de famille et la carte d'identité de chaque enfant non affilié vous accompagnant.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="nouvelle_caledonie"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Affiliation à la CAFAT :</MiseEnEvidence> En tant que militaire affecté en Nouvelle-Calédonie, vous et les membres de votre famille devez vous affilier au régime unifié d'assurance maladie-maternité géré par la CAFAT. 
+Cette affiliation est nécessaire pour votre famille, que celle-ci réside ou non dans votre zone d'affectation.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="mayotte"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Affiliation à la CSSM (MA) :</MiseEnEvidence> En tant que militaire affecté à Mayotte, vous, et les membres de votre famille résidant dans votre zone d'affectation, devez vous affilier à la Caisse de sécurité sociale de Mayotte (CSSM).</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="saint_pierre_et_miquelon"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Affiliation à la CPS (SPM) :</MiseEnEvidence> En tant que militaire affecté à Saint-pierre-et-Miquelon, vous et les membres de votre famille devez vous affilier à la Caisse de Prévoyance Sociale (CPS) de Saint-Pierre. 
+Cette affiliation est nécessaire pour votre famille, que celle-ci réside ou non dans votre zone d'affectation.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="serbie"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Affiliation à l'IAMS :</MiseEnEvidence> En tant que militaire affecté en Serbie, vous et les membres de votre famille devez vous affilier à l'Institut d'Assurance Maladie de Serbie sur présentation des formulaires SE 21-01/SRB-FR 101 et SE21-09/SEB-FR128 délivrés par la CNMSS.
+Vos ayants droit qui vous suivent en affectation sur le territoire bénéficient des prestations d’assurance maladie, dans les mêmes conditions que vous. Vos ayants droit qui restent en France demeurent affiliés à la CNMSS.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="hors_france"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Conservez bien votre carte vitale</MiseEnEvidence> : Votre carte vitale reste utilisable en cas de séjour occasionnel en France au cours de votre affectation. Veillez à y avoir accès quand vous êtes en France.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="nouvelle_caledonie"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Conservez bien votre carte vitale :</MiseEnEvidence> Avant tout séjour occasionnel dans un département français, vous devez demander à la CAFAT le formulaire SE 988-03 ou SE988-04, à adresser à la CNMSS qui assurera le versement des prestations en votre faveur ou celle de vos ayants droit, pour le compte de la CAFAT.</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="amelie"/>
+            <estVrai var="ue"/>
+            <estVrai var="hors_ue"/>
+            <estVrai var="polynesie_francaise"/>
+            <estVrai var="mayotte"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Compte AMELI :</MiseEnEvidence> Créez votre compte pour vos démarches courantes. Cela vous permettra de télécharger votre attestation de droit à la sécurité sociale, de commander une Carte Européenne d'Assurance Maladie (CEAM) ou de suivre tous vos remboursements de santé</Paragraphe>
+        </Item>
+        <Item>
+          <Condition>
+            <estVrai var="non_cnmss"/>
+            <estVrai var="ue"/>
+            <estVrai var="hors_ue"/>
+            <estVrai var="polynesie_francaise"/>
+            <estVrai var="saint_pierre_et_miquelon"/>
+            <estVrai var="serbie"/>
+          </Condition>
+          <Paragraphe><MiseEnEvidence>Remboursements de soins à l'étranger :</MiseEnEvidence> Créez votre &quot;Compte CNMSS&quot; pour bénéficier du téléservice en ligne de remboursement des soins hors de France ou dans une COM</Paragraphe>
+        </Item>
+      </Liste>
+    </Chapitre>
+  </Texte>
+</Publication>

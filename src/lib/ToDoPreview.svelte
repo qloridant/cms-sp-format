@@ -1,11 +1,13 @@
 <script>
   import Inline from "./Inline.svelte";
+  import { termState } from "./xml.js";
 
   let { items, vars = null } = $props();
 
   // Groupes ET-és, termes OU-és au sein d'un groupe. "badge" = condition pas encore
-  // tranchée (au moins une variable pas encore répondue) : on affiche quand même, avec
-  // une pastille, pour que la rédaction reste consultable sans avoir tout répondu.
+  // tranchée (au moins un terme "unknown", càd une variable pas encore répondue) : on
+  // affiche quand même, avec une pastille, pour que la rédaction reste consultable sans
+  // avoir tout répondu. estIndefini est toujours tranchable (jamais "unknown").
   function groupes(it) {
     return (it.conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   }
@@ -14,18 +16,17 @@
     if (!gs.length) return "always";
     let sawUnknown = false;
     for (const terms of gs) {
-      const connu = vars ? terms.filter((c) => c.var in vars) : [];
-      if (connu.some((c) => vars[c.var] === (c.val !== "faux"))) continue; // groupe (OU) vérifié
-      if (connu.length < terms.length) sawUnknown = true; // un terme du groupe pas encore répondu
-      else return "hide"; // groupe entièrement connu et aucun terme vérifié
+      const states = terms.map((c) => termState(c, vars));
+      if (states.includes("true")) continue; // groupe (OU) vérifié
+      if (states.includes("unknown")) sawUnknown = true; // un terme du groupe pas encore tranché
+      else return "hide"; // groupe entièrement tranché et aucun terme vérifié
     }
     return sawUnknown ? "badge" : "show";
   }
   const visibles = $derived(items.filter((it) => it.texte.trim() && resolved(it) !== "hide"));
+  const termLabel = (c) => c.val === "indefini" ? `${c.var} non renseignée` : `${c.var} = ${c.val || "vrai"}`;
   const condsLabel = (it) => groupes(it)
-    .map((terms) => terms.length > 1
-      ? "(" + terms.map((c) => `${c.var} = ${c.val || "vrai"}`).join(" OU ") + ")"
-      : `${terms[0].var} = ${terms[0].val || "vrai"}`)
+    .map((terms) => terms.length > 1 ? "(" + terms.map(termLabel).join(" OU ") + ")" : termLabel(terms[0]))
     .join(" ET ");
 </script>
 

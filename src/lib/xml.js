@@ -43,9 +43,12 @@ function titreRicheXml(txt, tag, ind) { return `${ind}<${tag}><Paragraphe>${inli
 
 // Sérialise une <Condition> : conds = groupes ET-és entre eux ("Afficher si … ET …"),
 // chaque groupe étant une liste de termes OU-és entre eux ({ id, terms: [{var,val}] }).
-// Un groupe à un seul terme reste un simple estVrai/estFaux ; à plusieurs, il est enveloppé
-// dans <ou> (cf. GroupeConditionElts du schéma, qui autorise estVrai/estFaux/et/ou/non).
-const term = (c) => `<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`;
+// Un groupe à un seul terme reste un simple estVrai/estFaux/estIndefini ; à plusieurs, il
+// est enveloppé dans <ou> (cf. GroupeConditionElts du schéma : estVrai/estFaux/estIndefini/et/ou/non).
+// val: "vrai" | "faux" | "indefini" (variable jamais affectée par le questionnaire).
+const term = (c) =>
+  c.val === "indefini" ? `<estIndefini var="${esc(c.var)}"/>`
+  : `<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`;
 function conditionXml(conds, ind) {
   const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   if (!groupes.length) return "";
@@ -131,16 +134,27 @@ export function computeVars(q, answers) {
   });
   return v;
 }
+// État d'un terme face aux variables connues : "true"/"false" si tranchable, "unknown" si
+// on ne peut pas encore savoir (vars === null : pas de suivi dans ce contexte, ex. mode
+// arbre ; ou variable pas encore affectée par le questionnaire). estIndefini est toujours
+// tranchable dès qu'on a un vars : il teste justement l'absence d'affectation.
+export function termState(c, vars) {
+  if (!vars) return "unknown";
+  const connu = c.var in vars;
+  if (c.val === "indefini") return connu ? "false" : "true";
+  if (!connu) return "unknown";
+  return vars[c.var] === (c.val !== "faux") ? "true" : "false";
+}
 // Visibilité d'un élément conditionné (Question, Situation, Chapitre…) selon les variables
 // déjà connues. Groupes ET-és entre eux, termes OU-és au sein d'un groupe (un groupe est
 // vrai dès qu'un de ses termes correspond). vars === null signifie "pas de suivi de
-// variables dans ce contexte" (ex. mode arbre) : on ne masque alors rien. Une variable pas
-// encore affectée dans un vars connu masque l'élément (affichage progressif tant que non répondue).
+// variables dans ce contexte" (ex. mode arbre) : on ne masque alors rien. Un terme "unknown"
+// (variable pas encore affectée) masque l'élément (affichage progressif tant que non répondue).
 export function condVisible(conds, vars) {
   const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   if (!groupes.length) return true;
   if (!vars) return true;
-  return groupes.every((terms) => terms.some((c) => vars[c.var] === (c.val !== "faux")));
+  return groupes.every((terms) => terms.some((c) => termState(c, vars) === "true"));
 }
 
 // ---------------------------------------------------------------- recherche guidée (arbre)

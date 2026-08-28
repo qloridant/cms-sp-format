@@ -22,6 +22,7 @@
         <select class="inp val" bind:value={c.val}>
           <option value="vrai">= vrai</option>
           <option value="faux">= faux</option>
+          <option value="indefini">non renseignée</option>
         </select>
         <button class="mini sq danger" onclick={() => removeTerm(g, ti)}>✕</button>
       {/each}
@@ -37,7 +38,7 @@
   .terms { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
   .or { font-weight: 700; font-size: 11px; color: var(--bleu); }
   .var { max-width: 150px; }
-  .val { max-width: 90px; }
+  .val { max-width: 130px; }
   .mini.sq { padding: 3px 8px; }
   .mini.sm { font-size: 11px; }
 </style>

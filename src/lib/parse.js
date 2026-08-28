@@ -31,16 +31,20 @@ function titreRiche(titreEl) {
 }
 
 // ---------------------------------------------------------------- todolist
-const asTerm = (c) => ({ id: uid(), var: c.getAttribute("var") || "", val: c.localName === "estFaux" ? "faux" : "vrai" });
+const isTermEl = (t) => t.localName === "estVrai" || t.localName === "estFaux" || t.localName === "estIndefini";
+const asTerm = (c) => ({
+  id: uid(), var: c.getAttribute("var") || "",
+  val: c.localName === "estFaux" ? "faux" : c.localName === "estIndefini" ? "indefini" : "vrai",
+});
 // conds = groupes ET-és ({ id, terms }), un terme seul ou un <ou> devient un groupe.
 // <et>/<non> imbriqués ne sont pas repris par l'éditeur (non représentables dans l'UI actuelle).
 function parseCondition(el) {
   const cond = childL(el, "Condition");
   if (!cond) return { conds: [] };
   const conds = els(cond).map((c) => {
-    if (c.localName === "estVrai" || c.localName === "estFaux") return { id: uid(), terms: [asTerm(c)] };
+    if (isTermEl(c)) return { id: uid(), terms: [asTerm(c)] };
     if (c.localName === "ou") {
-      const terms = els(c).filter((t) => t.localName === "estVrai" || t.localName === "estFaux").map(asTerm);
+      const terms = els(c).filter(isTermEl).map(asTerm);
       return terms.length ? { id: uid(), terms } : null;
     }
     return null;
