@@ -8,6 +8,8 @@ export const AUTO_SURTITRE = "Comment faire si";
 // Type par défaut d'un lien interne (attribut requis ; xs:string libre).
 export const LIEN_INTERNE_TYPE = "Fiche";
 
+import { FEATURES } from "./features.js";
+
 let _id = 0;
 export const uid = () => `b${++_id}`;
 
@@ -50,6 +52,7 @@ const term = (c) =>
   c.val === "indefini" ? `<estIndefini var="${esc(c.var)}"/>`
   : `<${c.val === "faux" ? "estFaux" : "estVrai"} var="${esc(c.var)}"/>`;
 function conditionXml(conds, ind) {
+  if (!FEATURES.questionnaire) return "";
   const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   if (!groupes.length) return "";
   const body = groupes.map((terms) =>
@@ -61,10 +64,43 @@ function conditionXml(conds, ind) {
 }
 
 // ---------------------------------------------------------------- todolist (Liste type="caseACocher")
+// Liens d'un item : [{ id, url, label }]. Les liens sans URL sont ignorés.
+export const lienValides = (it) => (it.liens || []).filter((l) => l.url && l.url.trim());
+function liensXml(it, ind) {
+  const liens = lienValides(it);
+  if (!liens.length) return "";
+  const rows = liens.map((l) => {
+    const url = l.url.trim();
+    return `${ind}  <LienExterne URL="${esc(url)}">${esc((l.label || "").trim() || url)}</LienExterne>`;
+  });
+  return `${ind}<Liens>\n${rows.join("\n")}\n${ind}</Liens>`;
+}
 function itemXml(it, ind) {
   const cond = conditionXml(it.conds, ind + "  ");
-  return `${ind}<Item>\n${cond ? cond + "\n" : ""}${para(it.texte, ind + "  ")}\n${ind}</Item>`;
+  const liens = liensXml(it, ind + "  ");
+  return `${ind}<Item>\n${cond ? cond + "\n" : ""}${para(it.texte, ind + "  ")}${liens ? "\n" + liens : ""}\n${ind}</Item>`;
 }
+
+// Liens d'un item pour l'aperçu : uniquement ceux de la liste <Liens> (le texte de l'item ne porte plus de liens).
+// 1 seul => l'item entier est cliquable ; plusieurs => page de liens.
+export const itemLinks = (it) =>
+  lienValides(it).map((l) => ({ label: (l.label || "").trim() || l.url.trim(), url: l.url.trim() }));
+
+// Les liens ne s'éditent plus dans le texte d'un item : « [libellé](url) » est remplacé par « libellé »
+// et le lien externe est renvoyé pour être ajouté à la liste Liens. Un lien interne (#ID) ne peut pas
+// vivre dans <Liens> (LienExterne seulement) : il est réduit à son libellé et compté dans `internes`.
+export function stripLinks(texte) {
+  const liens = [];
+  let internes = 0;
+  const clean = String(texte ?? "").replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
+    if (url.trim().startsWith("#")) { internes++; return label; }
+    liens.push({ url: url.trim(), label: label.trim() });
+    return label;
+  });
+  return { texte: clean, liens, internes };
+}
+// Empêche les schémas dangereux (javascript:, data:…) dans les href de l'aperçu.
+export const safeUrl = (u) => (/^\s*(https?:|mailto:|tel:|#)/i.test(u) ? u.trim() : "#");
 function listeCocherXml(items, ind) {
   const valides = items.filter((it) => it.texte.trim());
   if (!valides.length) return "";
@@ -151,6 +187,7 @@ export function termState(c, vars) {
 // variables dans ce contexte" (ex. mode arbre) : on ne masque alors rien. Un terme "unknown"
 // (variable pas encore affectée) masque l'élément (affichage progressif tant que non répondue).
 export function condVisible(conds, vars) {
+  if (!FEATURES.questionnaire) return true;
   const groupes = (conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   if (!groupes.length) return true;
   if (!vars) return true;
@@ -228,7 +265,9 @@ export function buildXml(d) {
   ])}>`);
   dcAndIntro(d, out);
   const intro = introXml(d); if (intro) out.push(intro);
-  if (d.questionnaire.mode === "arbre") {
+  if (!FEATURES.questionnaire) {
+    // fonctionnalité questionnaire désactivée : rien à exporter
+  } else if (d.questionnaire.mode === "arbre") {
     const rg = rgReferenceXml(d.questionnaire.arbre); if (rg) out.push(rg);
   } else {
     const q = questionnaireXml(d.questionnaire); if (q) out.push(q);

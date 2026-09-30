@@ -1,11 +1,29 @@
 <script>
-  import { uid } from "./xml.js";
+  import { uid, stripLinks } from "./xml.js";
+  import { FEATURES } from "./features.js";
   import CondsEditor from "./CondsEditor.svelte";
+  import LiensEditor from "./LiensEditor.svelte";
   let { items } = $props();
 
-  const add = () => items.push({ id: uid(), texte: "", conds: [] });
-  const insert = (i) => items.splice(i, 0, { id: uid(), texte: "", conds: [] });
+  const add = () => items.push({ id: uid(), texte: "", conds: [], liens: [] });
+  const insert = (i) => items.splice(i, 0, { id: uid(), texte: "", conds: [], liens: [] });
   const remove = (i) => items.splice(i, 1);
+
+  // Les liens ne s'éditent pas dans le texte : tout « [libellé](url) » saisi ou collé est déplacé dans « Liens ».
+  let notes = $state({});
+  function onText(it, value) {
+    const r = stripLinks(value);
+    if (r.liens.length || r.internes) {
+      (it.liens ??= []).push(...r.liens.map((l) => ({ id: uid(), ...l })));
+      const parts = [];
+      if (r.liens.length) parts.push(`${r.liens.length} lien${r.liens.length > 1 ? "s" : ""} déplacé${r.liens.length > 1 ? "s" : ""} dans « Liens »`);
+      if (r.internes) parts.push(`${r.internes} lien${r.internes > 1 ? "s" : ""} interne${r.internes > 1 ? "s" : ""} retiré${r.internes > 1 ? "s" : ""} (non pris en charge dans « Liens »)`);
+      notes[it.id] = parts.join(" · ");
+    } else {
+      delete notes[it.id];
+    }
+    it.texte = r.texte;
+  }
   function move(i, dir) {
     const j = i + dir;
     if (j < 0 || j >= items.length) return;
@@ -27,10 +45,16 @@
         <button class="mini sq danger" onclick={() => remove(i)}>✕</button>
       </div>
     </div>
-    <textarea class="inp mb" placeholder="Texte de l'élément.  **gras**  [lien interne](#F12345) [lien externe](https://www.cnmss.fr/)" bind:value={it.texte}></textarea>
-    <div class="conds">
-      <CondsEditor owner={it} />
+    <textarea class="inp mb" placeholder="Texte de l'élément.  **gras**  *italique*  — les liens se saisissent dans « Liens » ci-dessous" value={it.texte} oninput={(e) => onText(it, e.currentTarget.value)}></textarea>
+    {#if notes[it.id]}<div class="note">{notes[it.id]}</div>{/if}
+    <div class="liens">
+      <LiensEditor owner={it} />
     </div>
+    {#if FEATURES.questionnaire}
+      <div class="conds">
+        <CondsEditor owner={it} />
+      </div>
+    {/if}
   </div>
 {/each}
 
@@ -45,6 +69,8 @@
   .tag { font-size: 12px; font-weight: 700; color: var(--gris); }
   .mini.sq { padding: 3px 8px; }
   .mb { margin-bottom: 8px; }
+  .note { font-size: 12px; color: #b34000; margin: -4px 0 8px; }
+  .liens { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--bordure); }
   .conds {
     margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--bordure);
   }

@@ -26,7 +26,7 @@
     todolists.push({
       cid, titre: "Étapes génériques (si non renseigné)",
       conds: [{ id: uid(), terms: vars.map((v) => ({ id: uid(), var: v, val: "indefini" })) }],
-      items: [{ id: uid(), texte: "", conds: [] }],
+      items: [{ id: uid(), texte: "", conds: [], liens: [] }],
     });
     requestAnimationFrame(() => document.getElementById("todo-" + cid)?.scrollIntoView({ behavior: "smooth", block: "center" }));
   }

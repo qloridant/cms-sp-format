@@ -6,12 +6,15 @@
   import Inline from "./Inline.svelte";
   import ToDo from "./ToDo.svelte";
   import ToDoPreview from "./ToDoPreview.svelte";
+  import LinksPage from "./LinksPage.svelte";
+  import { linkPage } from "./linkpage.svelte.js";
   import QuestionnaireEditor from "./QuestionnaireEditor.svelte";
   import VariablesPanel from "./VariablesPanel.svelte";
   import BranchePreview from "./BranchePreview.svelte";
   import SituationsEditor from "./SituationsEditor.svelte";
   import SituationsPreview from "./SituationsPreview.svelte";
   import CondsEditor from "./CondsEditor.svelte";
+  import { FEATURES } from "./features.js";
   import { parseXml } from "./parse.js";
   import { validate } from "./validate.js";
 
@@ -36,8 +39,8 @@
     },
     todolists: [
       { cid: uid(), titre: "Pièces à fournir", items: [
-        { id: uid(), texte: "Photo d'identité récente", conds: [] },
-        { id: uid(), texte: "Justificatif de domicile", conds: [] },
+        { id: uid(), texte: "Photo d'identité récente", conds: [], liens: [] },
+        { id: uid(), texte: "Justificatif de domicile", conds: [], liens: [] },
       ] },
     ],
     situations: { affichage: "onglet", list: [] },
@@ -50,7 +53,7 @@
 
   const xml = $derived(buildXml(d));
   const xmlRg = $derived(
-    d.questionnaire.mode === "arbre" && d.questionnaire.arbre.rgId.trim() ? buildRechercheGuidee(d) : ""
+    FEATURES.questionnaire && d.questionnaire.mode === "arbre" && d.questionnaire.arbre.rgId.trim() ? buildRechercheGuidee(d) : ""
   );
 
   $effect(() => {
@@ -119,6 +122,9 @@
 <div class="grid">
   <!-- ÉDITEUR -->
   <main class="editor">
+    {#if FEATURES.questionnaire}
+      <VariablesPanel questionnaire={d.questionnaire} todolists={d.todolists} situations={d.situations} values={vars} />
+    {/if}
     <section class="card">
       <div class="card-head"><h2>Type et métadonnées</h2></div>
 
@@ -154,8 +160,9 @@
       <textarea class="inp tall" placeholder="Texte d'introduction.  **gras**  *italique*  [lien](https://…)" bind:value={d.intro}></textarea>
     </section>
 
-    <QuestionnaireEditor questionnaire={d.questionnaire} todolists={d.todolists} />
-    <VariablesPanel questionnaire={d.questionnaire} todolists={d.todolists} situations={d.situations} />
+    {#if FEATURES.questionnaire}
+      <QuestionnaireEditor questionnaire={d.questionnaire} todolists={d.todolists} />
+    {/if}
 
     {#each d.todolists as c, ci (c.cid)}
       <section class="card" id={"todo-" + c.cid}>
@@ -164,9 +171,11 @@
           <button class="mini danger" onclick={() => rmTodolist(ci)}>Supprimer</button>
         </div>
         <label class="field"><span class="lbl">Titre (facultatif)</span><input class="inp" bind:value={c.titre} /></label>
-        <div class="conds mb">
-          <CondsEditor owner={c} />
-        </div>
+        {#if FEATURES.questionnaire}
+          <div class="conds mb">
+            <CondsEditor owner={c} />
+          </div>
+        {/if}
         <ToDo items={c.items} />
       </section>
     {/each}
@@ -224,6 +233,9 @@
 
     <div class="pbody">
       {#if vue === "apercu"}
+        {#if linkPage.item}
+        <article class="article"><LinksPage item={linkPage.item} /></article>
+        {:else}
         <article class="article">
           {#if d.surTitre}<div class="surtitre">{d.surTitre}</div>{/if}
           <h1>{d.titre || "Titre"}</h1>
@@ -236,7 +248,9 @@
             <div class="chapo">{#each paragraphes(d.intro) as p}<p><Inline text={p} /></p>{/each}</div>
           {/if}
 
-          {#if d.questionnaire.mode === "arbre"}
+          {#if !FEATURES.questionnaire}
+            <!-- fonctionnalité questionnaire désactivée -->
+          {:else if d.questionnaire.mode === "arbre"}
             <BranchePreview racines={d.questionnaire.arbre.racines} />
           {:else if d.questionnaire.questions.some((qu) => qu.titre.trim())}
             <div class="qbox">
@@ -273,6 +287,7 @@
             </section>
           {/if}
         </article>
+        {/if}
       {:else if vue === "xml"}
         <pre class="xml">{xml}</pre>
       {:else}

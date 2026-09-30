@@ -1,6 +1,8 @@
 <script>
   import Inline from "./Inline.svelte";
-  import { termState } from "./xml.js";
+  import { termState, itemLinks, safeUrl } from "./xml.js";
+  import { FEATURES } from "./features.js";
+  import { openLinks } from "./linkpage.svelte.js";
 
   let { items, vars = null } = $props();
 
@@ -9,6 +11,7 @@
   // affiche quand même, avec une pastille, pour que la rédaction reste consultable sans
   // avoir tout répondu. estIndefini est toujours tranchable (jamais "unknown").
   function groupes(it) {
+    if (!FEATURES.questionnaire) return [];
     return (it.conds || []).map((g) => (g.terms || []).filter((c) => c.var.trim())).filter((t) => t.length);
   }
   function resolved(it) {
@@ -32,10 +35,29 @@
 
 <ul class="todo">
   {#each visibles as it (it.id)}
-    <li class="trow" class:cond={resolved(it) === "badge"}>
-      <span class="box" aria-hidden="true"></span>
-      <span class="txt"><Inline text={it.texte} /></span>
-      {#if resolved(it) === "badge"}<span class="badge">si {condsLabel(it)}</span>{/if}
+    {@const links = itemLinks(it)}
+    <li class="trow" class:cond={resolved(it) === "badge"} class:clic={links.length > 0}>
+      {#if links.length === 1}
+        {@const l = links[0]}
+        <a class="rowlink" href={safeUrl(l.url)} target="_blank" rel="noopener noreferrer">
+          <span class="box" aria-hidden="true"></span>
+          <span class="txt"><Inline text={it.texte} /></span>
+          {#if resolved(it) === "badge"}<span class="badge">si {condsLabel(it)}</span>{/if}
+          <span class="arr" aria-hidden="true">↗</span>
+        </a>
+      {:else if links.length > 1}
+        <button class="rowlink" onclick={() => openLinks(it)}>
+          <span class="box" aria-hidden="true"></span>
+          <span class="txt"><Inline text={it.texte} /></span>
+          {#if resolved(it) === "badge"}<span class="badge">si {condsLabel(it)}</span>{/if}
+          <span class="nb">{links.length} liens</span>
+          <span class="arr" aria-hidden="true">→</span>
+        </button>
+      {:else}
+        <span class="box" aria-hidden="true"></span>
+        <span class="txt"><Inline text={it.texte} /></span>
+        {#if resolved(it) === "badge"}<span class="badge">si {condsLabel(it)}</span>{/if}
+      {/if}
     </li>
   {/each}
 </ul>
@@ -46,6 +68,16 @@
     display: flex; align-items: flex-start; gap: 12px;
     padding: 14px 4px; border-bottom: 1px solid var(--bordure);
   }
+  .trow.clic { padding: 0; }
+  .rowlink {
+    display: flex; align-items: flex-start; gap: 12px; width: 100%; box-sizing: border-box;
+    padding: 14px 4px; background: none; border: 0; font: inherit; text-align: left;
+    color: inherit; text-decoration: none; cursor: pointer;
+  }
+  .rowlink:hover { background: #f6f6f6; }
+  .rowlink:hover .txt { text-decoration: underline; }
+  .arr { flex: 0 0 auto; align-self: center; color: var(--bleu); font-size: 16px; }
+  .nb { flex: 0 0 auto; align-self: center; font-size: 12px; color: var(--bleu); }
   .box {
     flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px;
     border: 2px solid var(--bleu); border-radius: 3px; background: var(--blanc);

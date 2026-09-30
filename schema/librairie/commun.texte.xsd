@@ -117,6 +117,17 @@
 								<xs:element ref="PourEnSavoirPlus" minOccurs="0"/>
 								<xs:element ref="Liste" minOccurs="0"/>
 							</xs:choice>
+							<!-- Extension locale : liens associés à l'item (1 seul = item cliquable, plusieurs = page de liens) -->
+							<xs:element name="Liens" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Liste des liens externes associés à un Item</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="LienExterne" type="TypeLienExterne" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>

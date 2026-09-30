@@ -2,6 +2,7 @@
   import { uid } from "./xml.js";
   import ToDo from "./ToDo.svelte";
   import CondsEditor from "./CondsEditor.svelte";
+  import { FEATURES } from "./features.js";
   let { situations } = $props();
 
   const addSituation = () => situations.list.push({ id: uid(), titre: "", conds: [], todolists: [] });
@@ -45,9 +46,11 @@
       </div>
       <input class="inp mb" placeholder="Titre de la situation (ex. Avant la grossesse)" bind:value={s.titre} />
 
-      <div class="conds">
-        <CondsEditor owner={s} />
-      </div>
+      {#if FEATURES.questionnaire}
+        <div class="conds">
+          <CondsEditor owner={s} />
+        </div>
+      {/if}
 
       {#each s.todolists as c, ci (c.cid)}
         <div class="todolist">
@@ -56,9 +59,11 @@
             <button class="mini sq danger" onclick={() => rmTodolist(s, ci)}>✕</button>
           </div>
           <input class="inp mb" placeholder="Titre (facultatif)" bind:value={c.titre} />
-          <div class="conds">
-            <CondsEditor owner={c} />
-          </div>
+          {#if FEATURES.questionnaire}
+            <div class="conds">
+              <CondsEditor owner={c} />
+            </div>
+          {/if}
           <ToDo items={c.items} />
         </div>
       {/each}

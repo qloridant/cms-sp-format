@@ -48,6 +48,29 @@ de la question (en OU, s'il y en a plusieurs) — il ne reste qu'à rédiger les
 génériques dedans. Le bouton est inactif (avec message) si la question ne définit
 encore aucune variable.
 
+## Feature flag « questionnaire »
+
+Toute la fonctionnalité questionnaire (questionnaire plat / recherche guidée, conditions « Afficher si… »,
+suivi des variables) est pilotée par un flag, `src/lib/features.js`. Désactivé, ces blocs disparaissent de
+l'éditeur et de l'aperçu, et l'export XML ne contient ni `<Questionnaire>` / `<RechercheGuidee>` ni `<Condition>`.
+
+Ordre de priorité (défaut : **activé**) :
+1. paramètre d'URL, sans rebuild : `?ff_questionnaire=off` (ou `on`) ;
+2. variable de build : `VITE_FF_QUESTIONNAIRE=false` (fichier `.env`, cf. `.env.example`) ;
+3. GitHub Pages : variable de dépôt `FF_QUESTIONNAIRE` (Settings → Secrets and variables → Actions → Variables),
+   transmise par le workflow ; vide = valeur par défaut.
+
+Un XML importé contenant un questionnaire ou des conditions est relu, mais ne sera pas ré-exporté tant que le flag est désactivé.
+
+## Liens d'un élément
+
+Chaque élément de todolist peut porter une liste de liens (URL + libellé optionnel), exportée en
+`<Item> … <Liens><LienExterne URL="…">libellé</LienExterne>…</Liens></Item>` (extension locale de
+`commun.texte.xsd`). Les liens ne se saisissent plus dans le texte de l'élément : un `[libellé](url)` saisi, collé ou importé y est
+remplacé par son libellé et déplacé dans la liste (les liens internes `#ID` sont réduits à leur libellé).
+Dans l'aperçu : **un seul** lien rend la ligne entière cliquable (nouvel onglet) ; **plusieurs** ouvrent une page de
+liens, avec bouton « Retour ».
+
 ## Reprendre un travail (import)
 
 Le bouton **Importer** (barre de l'aperçu) relit un fichier XML précédemment
@@ -100,6 +123,7 @@ src/
     ├── xml.js                  sérialisation XML par racine
     ├── parse.js                import XML → état
     ├── validate.js             validation navigateur
+    ├── LiensEditor / LinksPage / linkpage.svelte.js   liens d'un élément
     ├── BlocList / BlocEditor / BlocPreview / QuestionnaireEditor / Inline
 scripts/validate.py             validation XSD (lxml)
 .github/workflows/deploy.yml    déploiement Pages

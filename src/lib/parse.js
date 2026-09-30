@@ -2,7 +2,7 @@
 // Miroir du sérialiseur (xml.js). Le rendu inline gras/italique étant sérialisé
 // en <MiseEnEvidence>, il est réimporté en **gras** (l'italique n'est pas distingué).
 
-import { uid } from "./xml.js";
+import { uid, stripLinks } from "./xml.js";
 
 const els = (el) => (el ? Array.from(el.children) : []);
 const childL = (el, local) => els(el).find((c) => c.localName === local) || null;
@@ -51,12 +51,28 @@ function parseCondition(el) {
   }).filter(Boolean);
   return { conds };
 }
+function parseLiens(itemEl) {
+  const liens = childL(itemEl, "Liens");
+  return childrenL(liens, "LienExterne").map((l) => ({
+    id: uid(), url: l.getAttribute("URL") || "", label: l.textContent.trim(),
+  }));
+}
+// Les liens ne vivent plus dans le texte d'un item : ceux d'un ancien export (<LienExterne> dans le
+// <Paragraphe>) sont déplacés dans la liste Liens ; les liens internes sont réduits à leur libellé.
+function parseItem(it) {
+  const r = stripLinks(parasText(it));
+  return {
+    id: uid(), texte: r.texte,
+    liens: [...parseLiens(it), ...r.liens.map((l) => ({ id: uid(), ...l }))],
+    ...parseCondition(it),
+  };
+}
 function parseTodolists(texteEl) {
   if (!texteEl) return [];
   return childrenL(texteEl, "Chapitre").map((c) => {
     const liste = childL(c, "Liste");
     const items = liste
-      ? childrenL(liste, "Item").map((it) => ({ id: uid(), texte: parasText(it), ...parseCondition(it) }))
+      ? childrenL(liste, "Item").map((it) => parseItem(it))
       : [];
     return { cid: uid(), titre: titreRiche(childL(c, "Titre")), items, ...parseCondition(c) };
   });

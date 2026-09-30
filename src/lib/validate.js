@@ -37,6 +37,15 @@ export function validate(xmlString) {
     if (!assigned.has(v)) issues.push({ level: "warn", msg: `Variable « ${v} » testée par un élément mais jamais définie par le questionnaire.` });
   });
 
+  // liens des items : URL obligatoire et de forme http(s)/mailto/tel
+  Array.from(doc.getElementsByTagName("Liens")).forEach((l) => {
+    Array.from(l.children).filter((c) => c.localName === "LienExterne").forEach((le) => {
+      const u = (le.getAttribute("URL") || "").trim();
+      if (!u) issues.push({ level: "error", msg: "Lien d'un élément sans URL." });
+      else if (!/^(https?:\/\/|mailto:|tel:)/i.test(u)) issues.push({ level: "warn", msg: `URL de lien suspecte : « ${u} ».` });
+    });
+  });
+
   // ordre des questions : une <Question><Condition> ne doit référencer que des
   // variables déjà affectées par une question précédente, sinon elle n'apparaîtra jamais.
   const questionnaireEl = Array.from(root.children).find((c) => c.localName === "Questionnaire");
