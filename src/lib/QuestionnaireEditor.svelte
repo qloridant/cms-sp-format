@@ -3,7 +3,7 @@
   import { parseRechercheGuidee } from "./parse.js";
   import BrancheEditor from "./BrancheEditor.svelte";
   import CondsEditor from "./CondsEditor.svelte";
-  let { questionnaire } = $props();
+  let { questionnaire, todolists } = $props();
 
   const addQuestion = () =>
     questionnaire.questions.push({ qid: uid(), titre: "", choix: [{ chid: uid(), titre: "", affect: [] }] });
@@ -12,6 +12,24 @@
   const rmChoix = (qu, ci) => qu.choix.splice(ci, 1);
   const addAffect = (c) => c.affect.push({ var: "", val: "vrai" });
   const rmAffect = (c, ai) => c.affect.splice(ai, 1);
+
+  // Raccourci : crée une todolist de repli affichée tant qu'aucune des variables de la
+  // question n'a été affectée (condition "non renseignée" en OU sur ces variables), pour
+  // proposer des étapes génériques quand la personne n'a pas encore répondu.
+  function addFallback(qu) {
+    const vars = [...new Set(qu.choix.flatMap((c) => (c.affect || []).map((a) => a.var.trim()).filter(Boolean)))];
+    if (!vars.length) {
+      alert("Ajoutez d'abord au moins une variable affectée par une réponse de cette question.");
+      return;
+    }
+    const cid = uid();
+    todolists.push({
+      cid, titre: "Étapes génériques (si non renseigné)",
+      conds: [{ id: uid(), terms: vars.map((v) => ({ id: uid(), var: v, val: "indefini" })) }],
+      items: [{ id: uid(), texte: "", conds: [] }],
+    });
+    requestAnimationFrame(() => document.getElementById("todo-" + cid)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
 
   const addRacine = () =>
     questionnaire.arbre.racines.push({ bid: uid(), titre: "", titreChoix: "", kind: "noeud", branches: [], lienId: "", lienTitre: "" });
@@ -85,7 +103,7 @@
             {#each c.affect as a, ai}
               <div class="affect">
                 <span>définit</span>
-                <input class="inp" placeholder="variable" bind:value={a.var} />
+                <input list="ef-vars" class="inp" placeholder="variable" bind:value={a.var} />
                 <select class="inp val" bind:value={a.val}>
                   <option value="vrai">= vrai</option>
                   <option value="faux">= faux</option>
@@ -97,6 +115,7 @@
           </div>
         {/each}
         <button class="mini" onclick={() => addChoix(qu)}>+ Réponse</button>
+        <button class="mini sm fallback" onclick={() => addFallback(qu)}>+ Contenu si sans réponse</button>
       </div>
     {/each}
 
@@ -149,4 +168,5 @@
   .mini.sm { font-size: 11px; }
   .mini.imp { cursor: pointer; display: inline-flex; align-items: center; }
   .nogrow { flex: 0 0 auto; }
+  .fallback { margin-left: 6px; }
 </style>

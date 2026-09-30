@@ -4,6 +4,7 @@
   let { items } = $props();
 
   const add = () => items.push({ id: uid(), texte: "", conds: [] });
+  const insert = (i) => items.splice(i, 0, { id: uid(), texte: "", conds: [] });
   const remove = (i) => items.splice(i, 1);
   function move(i, dir) {
     const j = i + dir;
@@ -21,6 +22,8 @@
       <div class="btns">
         <button class="mini sq" disabled={i === 0} onclick={() => move(i, -1)}>↑</button>
         <button class="mini sq" disabled={i === items.length - 1} onclick={() => move(i, 1)}>↓</button>
+        <button class="mini sq" title="Ajouter un élément au-dessus" onclick={() => insert(i)}>+↑</button>
+        <button class="mini sq" title="Ajouter un élément en-dessous" onclick={() => insert(i + 1)}>+↓</button>
         <button class="mini sq danger" onclick={() => remove(i)}>✕</button>
       </div>
     </div>

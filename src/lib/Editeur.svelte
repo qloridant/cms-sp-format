@@ -7,6 +7,7 @@
   import ToDo from "./ToDo.svelte";
   import ToDoPreview from "./ToDoPreview.svelte";
   import QuestionnaireEditor from "./QuestionnaireEditor.svelte";
+  import VariablesPanel from "./VariablesPanel.svelte";
   import BranchePreview from "./BranchePreview.svelte";
   import SituationsEditor from "./SituationsEditor.svelte";
   import SituationsPreview from "./SituationsPreview.svelte";
@@ -153,10 +154,11 @@
       <textarea class="inp tall" placeholder="Texte d'introduction.  **gras**  *italique*  [lien](https://…)" bind:value={d.intro}></textarea>
     </section>
 
-    <QuestionnaireEditor questionnaire={d.questionnaire} />
+    <QuestionnaireEditor questionnaire={d.questionnaire} todolists={d.todolists} />
+    <VariablesPanel questionnaire={d.questionnaire} todolists={d.todolists} situations={d.situations} />
 
     {#each d.todolists as c, ci (c.cid)}
-      <section class="card">
+      <section class="card" id={"todo-" + c.cid}>
         <div class="card-head">
           <h2>Todolist</h2>
           <button class="mini danger" onclick={() => rmTodolist(ci)}>Supprimer</button>

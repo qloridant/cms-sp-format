@@ -26,6 +26,28 @@ tête). Le surtitre peut être généré automatiquement depuis le type de docum
 > « Fiche » ; ajuste-le si besoin. Gras et italique sont tous deux sérialisés en
 > `MiseEnEvidence` et réimportés en `**gras**`.
 
+## Conditions et contenu conditionnel
+
+Todolists, items, questions et situations partagent le même bloc « Afficher si… »
+(`CondsEditor`) : des groupes **ET**-és entre eux, chaque groupe pouvant contenir
+plusieurs termes **OU**-és (bouton **+ OU**). Un terme teste une variable affectée
+par le questionnaire (`Questionnaire → Réponse → définit`), avec trois états :
+
+- **= vrai** / **= faux** : la variable a été affectée à cette valeur ;
+- **non renseignée** : la variable n'a **jamais** été affectée, quelle que soit la
+  réponse choisie — c'est le cas tant que la personne n'a pas répondu à la question
+  qui la définit (ou si aucune des réponses possibles ne la définit).
+
+C'est ce dernier état qui sert à proposer un **contenu de repli générique** :
+une todolist conditionnée par `variable = non renseignée` reste affichée tant que
+la question associée n'a pas de réponse, et disparaît dès qu'elle en a une.
+
+**Raccourci.** Dans l'éditeur de question, le bouton **+ Contenu si sans réponse**
+crée automatiquement une todolist pré-conditionnée sur cet état pour les variables
+de la question (en OU, s'il y en a plusieurs) — il ne reste qu'à rédiger les étapes
+génériques dedans. Le bouton est inactif (avec message) si la question ne définit
+encore aucune variable.
+
 ## Reprendre un travail (import)
 
 Le bouton **Importer** (barre de l'aperçu) relit un fichier XML précédemment
