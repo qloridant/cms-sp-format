@@ -3,6 +3,7 @@
   import { parseRechercheGuidee } from "./parse.js";
   import BrancheEditor from "./BrancheEditor.svelte";
   import CondsEditor from "./CondsEditor.svelte";
+  import Fold from "./Fold.svelte";
   let { questionnaire, todolists } = $props();
 
   const addQuestion = () =>
@@ -60,7 +61,7 @@
 </script>
 
 <section class="card">
-  <div class="card-head"><h2>Questionnaire</h2></div>
+  <Fold title="Questionnaire" variant="card" summary={questionnaire.mode === "arbre" ? "recherche guidée" : `${questionnaire.questions.length} question${questionnaire.questions.length > 1 ? "s" : ""}`}>
 
   <div class="btns mb mode">
     <button class="mini" class:on={questionnaire.mode !== "arbre"} onclick={() => (questionnaire.mode = "plat")}>Questionnaire plat</button>
@@ -81,10 +82,10 @@
 
     {#each questionnaire.questions as qu, qi (qu.qid)}
       <div class="question">
-        <div class="qhead">
-          <span class="tag">Question {qi + 1}</span>
+        <Fold title={`Question ${qi + 1}`} summary={qu.titre}>
+        {#snippet actions()}
           <button class="mini sq danger" onclick={() => rmQuestion(qi)}>✕</button>
-        </div>
+        {/snippet}
         <input class="inp mb" placeholder="Intitulé de la question" bind:value={qu.titre} />
 
         <div class="conds">
@@ -116,6 +117,7 @@
         {/each}
         <button class="mini" onclick={() => addChoix(qu)}>+ Réponse</button>
         <button class="mini sm fallback" onclick={() => addFallback(qu)}>+ Contenu si sans réponse</button>
+        </Fold>
       </div>
     {/each}
 
@@ -146,6 +148,7 @@
     {/each}
     <button class="mini on block" onclick={addRacine}>+ Ajouter une racine</button>
   {/if}
+  </Fold>
 </section>
 
 <style>
@@ -155,8 +158,6 @@
     border: 1px solid var(--bordure); border-left: 3px solid var(--bleu);
     border-radius: 4px; padding: 12px; margin-bottom: 12px; background: #fafafa;
   }
-  .qhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .tag { font-size: 12px; font-weight: 700; color: var(--gris); }
   .choix { border: 1px solid var(--bordure); border-radius: 4px; padding: 10px; margin-bottom: 8px; background: var(--blanc); }
   .conds { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--bordure); }
   .condnote { margin: 6px 0 0; font-size: 11px; color: var(--gris); font-style: italic; }

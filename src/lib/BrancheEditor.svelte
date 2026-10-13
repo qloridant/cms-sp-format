@@ -1,6 +1,7 @@
 <script>
   import { uid } from "./xml.js";
   import BrancheEditor from "./BrancheEditor.svelte";
+  import Fold from "./Fold.svelte";
   let { node, depth = 0, first = false, last = false, onremove = null, onmove = null } = $props();
 
   const addChild = () =>
@@ -16,8 +17,8 @@
 </script>
 
 <div class="branche">
-  <div class="bhead">
-    <span class="tag">{depth === 0 ? "Racine" : "Branche"}</span>
+  <Fold title={depth === 0 ? "Racine" : "Branche"} summary={node.titreChoix || node.titre}>
+  {#snippet actions()}
     {#if onremove}
       <div class="btns">
         <button class="mini sq" disabled={first} onclick={() => onmove(-1)}>↑</button>
@@ -25,7 +26,7 @@
         <button class="mini sq danger" onclick={onremove}>✕</button>
       </div>
     {/if}
-  </div>
+  {/snippet}
 
   {#if depth > 0}
     <input class="inp mb" placeholder="Libellé du choix (bouton proposé par la question précédente)" bind:value={node.titreChoix} />
@@ -54,6 +55,7 @@
       <button class="mini" onclick={addChild}>+ Ajouter un choix</button>
     </div>
   {/if}
+  </Fold>
 </div>
 
 <style>
@@ -61,8 +63,6 @@
     border: 1px solid var(--bleu-clair); border-left: 3px solid var(--bleu);
     border-radius: 4px; padding: 12px; margin-bottom: 10px; background: #f7f7ff;
   }
-  .bhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .tag { font-size: 12px; font-weight: 700; color: var(--bleu); }
   .mini.sq { padding: 3px 8px; }
   .mb { margin-bottom: 8px; }
   .kind { font-size: 12px; }

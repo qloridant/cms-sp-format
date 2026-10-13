@@ -1,6 +1,7 @@
 <script>
   import { uid, stripLinks } from "./xml.js";
   import { FEATURES } from "./features.js";
+  import Fold from "./Fold.svelte";
   import CondsEditor from "./CondsEditor.svelte";
   import LiensEditor from "./LiensEditor.svelte";
   let { items } = $props();
@@ -35,8 +36,8 @@
 
 {#each items as it, i (it.id)}
   <div class="item">
-    <div class="ihead">
-      <span class="tag">☐ Élément {i + 1}</span>
+    <Fold title={`☐ Élément ${i + 1}`} summary={it.texte}>
+    {#snippet actions()}
       <div class="btns">
         <button class="mini sq" disabled={i === 0} onclick={() => move(i, -1)}>↑</button>
         <button class="mini sq" disabled={i === items.length - 1} onclick={() => move(i, 1)}>↓</button>
@@ -44,7 +45,7 @@
         <button class="mini sq" title="Ajouter un élément en-dessous" onclick={() => insert(i + 1)}>+↓</button>
         <button class="mini sq danger" onclick={() => remove(i)}>✕</button>
       </div>
-    </div>
+    {/snippet}
     <textarea class="inp mb" placeholder="Texte de l'élément.  **gras**  *italique*  — les liens se saisissent dans « Liens » ci-dessous" value={it.texte} oninput={(e) => onText(it, e.currentTarget.value)}></textarea>
     {#if notes[it.id]}<div class="note">{notes[it.id]}</div>{/if}
     <div class="liens">
@@ -55,6 +56,7 @@
         <CondsEditor owner={it} />
       </div>
     {/if}
+    </Fold>
   </div>
 {/each}
 
@@ -65,8 +67,6 @@
     border: 1px solid var(--bordure); border-left: 3px solid var(--bleu);
     border-radius: 4px; padding: 10px 12px; margin-bottom: 10px; background: #fafafa;
   }
-  .ihead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .tag { font-size: 12px; font-weight: 700; color: var(--gris); }
   .mini.sq { padding: 3px 8px; }
   .mb { margin-bottom: 8px; }
   .note { font-size: 12px; color: #b34000; margin: -4px 0 8px; }

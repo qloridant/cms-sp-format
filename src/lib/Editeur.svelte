@@ -15,6 +15,8 @@
   import SituationsPreview from "./SituationsPreview.svelte";
   import CondsEditor from "./CondsEditor.svelte";
   import { FEATURES } from "./features.js";
+  import Fold from "./Fold.svelte";
+  import { foldAll } from "./folds.svelte.js";
   import { parseXml } from "./parse.js";
   import { validate } from "./validate.js";
 
@@ -117,16 +119,28 @@
   <div class="logo">SP</div>
   <div class="brand">Éditeur de contenu</div>
   <div class="hint">Fiche « Comment faire si conditionné » · rédigez à gauche, aperçu et export à droite</div>
+  <div class="btns foldall">
+    <button class="mini" onclick={() => foldAll(false)} title="Replier tous les blocs d'édition">⊟ Tout replier</button>
+    <button class="mini" onclick={() => foldAll(true)} title="Déplier tous les blocs d'édition">⊞ Tout déplier</button>
+  </div>
 </header>
 
 <div class="grid">
   <!-- ÉDITEUR -->
   <main class="editor">
+    <aside class="tips" aria-label="Bonnes pratiques">
+      <p><strong>Rédaction</strong> : une idée par élément, en phrases courtes ; l'essentiel en <strong>gras</strong> ; les liens se saisissent dans « Liens », avec un libellé explicite (pas « cliquez ici »).</p>
+      {#if FEATURES.questionnaire}
+        <p><strong>Avant de télécharger</strong> : testez chaque réponse dans l'aperçu, nommez les variables clairement (ex. <code>estMajeur</code>), prévoyez un contenu de repli « non renseignée » et vérifiez le bandeau Variables et l'indicateur de validation.</p>
+      {:else}
+        <p><strong>Avant de télécharger</strong> : relisez l'aperçu et vérifiez l'indicateur de validation en haut de l'aperçu.</p>
+      {/if}
+    </aside>
     {#if FEATURES.questionnaire}
       <VariablesPanel questionnaire={d.questionnaire} todolists={d.todolists} situations={d.situations} values={vars} />
     {/if}
     <section class="card">
-      <div class="card-head"><h2>Type et métadonnées</h2></div>
+      <Fold title="Type et métadonnées" variant="card" summary={d.titre}>
 
       <label class="field"><span class="lbl">Type</span>
         <input class="inp ro" value={FICHE_TYPE} readonly /></label>
@@ -153,11 +167,13 @@
         </span>
         <input class="inp" bind:value={d.surTitre} disabled={surTitreAuto} />
       </label>
+      </Fold>
     </section>
 
     <section class="card">
-      <div class="card-head"><h2>Introduction</h2></div>
-      <textarea class="inp tall" placeholder="Texte d'introduction.  **gras**  *italique*  [lien](https://…)" bind:value={d.intro}></textarea>
+      <Fold title="Introduction" variant="card" summary={d.intro}>
+        <textarea class="inp tall" placeholder="Texte d'introduction.  **gras**  *italique*  [lien](https://…)" bind:value={d.intro}></textarea>
+      </Fold>
     </section>
 
     {#if FEATURES.questionnaire}
@@ -166,10 +182,10 @@
 
     {#each d.todolists as c, ci (c.cid)}
       <section class="card" id={"todo-" + c.cid}>
-        <div class="card-head">
-          <h2>Todolist</h2>
+        <Fold title="Todolist" variant="card" summary={`${c.titre || "sans titre"} · ${c.items.length} élément${c.items.length > 1 ? "s" : ""}`}>
+        {#snippet actions()}
           <button class="mini danger" onclick={() => rmTodolist(ci)}>Supprimer</button>
-        </div>
+        {/snippet}
         <label class="field"><span class="lbl">Titre (facultatif)</span><input class="inp" bind:value={c.titre} /></label>
         {#if FEATURES.questionnaire}
           <div class="conds mb">
@@ -177,6 +193,7 @@
           </div>
         {/if}
         <ToDo items={c.items} />
+        </Fold>
       </section>
     {/each}
     <button class="mini on block mb16" onclick={addTodolist}>+ Ajouter une todolist</button>
@@ -184,9 +201,10 @@
     <SituationsEditor situations={d.situations} />
 
     <section class="card">
-      <div class="card-head"><h2>Conclusion</h2></div>
-      <label class="field"><span class="lbl">Titre (facultatif)</span><input class="inp" bind:value={d.conclusionTitre} /></label>
-      <textarea class="inp" bind:value={d.conclusion}></textarea>
+      <Fold title="Conclusion" variant="card" summary={d.conclusionTitre || d.conclusion}>
+        <label class="field"><span class="lbl">Titre (facultatif)</span><input class="inp" bind:value={d.conclusionTitre} /></label>
+        <textarea class="inp" bind:value={d.conclusion}></textarea>
+      </Fold>
     </section>
   </main>
 
@@ -305,9 +323,13 @@
   .logo { width: 32px; height: 32px; background: var(--bleu); color: var(--blanc); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
   .brand { font-size: 16px; font-weight: 800; }
   .topbar .hint { font-size: 12px; color: var(--gris); }
+  .foldall { margin-left: auto; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
   .editor { padding: 22px; max-width: 680px; }
+  .tips { background: #f5f5fe; border: 1px solid var(--bleu-clair); border-left: 3px solid var(--bleu); border-radius: 4px; padding: 8px 12px; margin-bottom: 16px; font-size: 12px; line-height: 1.5; color: var(--texte); }
+  .tips p { margin: 0; }
+  .tips p + p { margin-top: 4px; }
   .ro { background: #e5e5e5; }
   .auto { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-weight: 400; }
   .auto input { margin: 0; }

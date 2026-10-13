@@ -48,6 +48,14 @@ de la question (en OU, s'il y en a plusieurs) — il ne reste qu'à rédiger les
 génériques dedans. Le bouton est inactif (avec message) si la question ne définit
 encore aucune variable.
 
+## Interface
+
+Un bandeau de bonnes pratiques rappelle en haut de l'éditeur les points clés de rédaction. Tous les blocs
+d'édition (métadonnées, introduction, questionnaire et ses questions, todolists et leurs éléments,
+situations, branches, conclusion) sont dépliables : clic sur le titre du bloc, ou **Tout replier / Tout
+déplier** dans la barre du haut. Replié, un bloc affiche un résumé (titre, début du texte…). Les champs
+gardent leur contenu quand un bloc est replié.
+
 ## Feature flag « questionnaire »
 
 Toute la fonctionnalité questionnaire (questionnaire plat / recherche guidée, conditions « Afficher si… »,

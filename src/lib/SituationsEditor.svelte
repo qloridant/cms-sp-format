@@ -3,6 +3,7 @@
   import ToDo from "./ToDo.svelte";
   import CondsEditor from "./CondsEditor.svelte";
   import { FEATURES } from "./features.js";
+  import Fold from "./Fold.svelte";
   let { situations } = $props();
 
   const addSituation = () => situations.list.push({ id: uid(), titre: "", conds: [], todolists: [] });
@@ -19,7 +20,7 @@
 </script>
 
 <section class="card">
-  <div class="card-head"><h2>Situations</h2></div>
+  <Fold title="Situations" variant="card" summary={`${situations.list.length} situation${situations.list.length > 1 ? "s" : ""}`}>
   <p class="intro">
     Regroupe des todolists par situation de l'usager (ex. « Avant la grossesse » / « Après la
     grossesse »), affichées en onglets. Une situation peut aussi être limitée à une condition
@@ -36,14 +37,14 @@
 
   {#each situations.list as s, si (s.id)}
     <div class="situation">
-      <div class="shead">
-        <span class="tag">Situation {si + 1}</span>
+      <Fold title={`Situation ${si + 1}`} summary={s.titre}>
+      {#snippet actions()}
         <div class="btns">
           <button class="mini sq" disabled={si === 0} onclick={() => moveSituation(si, -1)}>↑</button>
           <button class="mini sq" disabled={si === situations.list.length - 1} onclick={() => moveSituation(si, 1)}>↓</button>
           <button class="mini sq danger" onclick={() => rmSituation(si)}>✕</button>
         </div>
-      </div>
+      {/snippet}
       <input class="inp mb" placeholder="Titre de la situation (ex. Avant la grossesse)" bind:value={s.titre} />
 
       {#if FEATURES.questionnaire}
@@ -54,10 +55,10 @@
 
       {#each s.todolists as c, ci (c.cid)}
         <div class="todolist">
-          <div class="thead">
-            <span class="tag2">Todolist</span>
+          <Fold title="Todolist" summary={`${c.titre || "sans titre"} · ${c.items.length} élément${c.items.length > 1 ? "s" : ""}`}>
+          {#snippet actions()}
             <button class="mini sq danger" onclick={() => rmTodolist(s, ci)}>✕</button>
-          </div>
+          {/snippet}
           <input class="inp mb" placeholder="Titre (facultatif)" bind:value={c.titre} />
           {#if FEATURES.questionnaire}
             <div class="conds">
@@ -65,13 +66,16 @@
             </div>
           {/if}
           <ToDo items={c.items} />
+          </Fold>
         </div>
       {/each}
       <button class="mini block" onclick={() => addTodolist(s)}>+ Ajouter une todolist</button>
+      </Fold>
     </div>
   {/each}
 
   <button class="mini on block" onclick={addSituation}>+ Ajouter une situation</button>
+  </Fold>
 </section>
 
 <style>
@@ -81,12 +85,8 @@
     border: 1px solid var(--bordure); border-left: 3px solid var(--bleu);
     border-radius: 4px; padding: 12px; margin-bottom: 12px; background: #fafafa;
   }
-  .shead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .tag { font-size: 12px; font-weight: 700; color: var(--gris); }
   .mb { margin-bottom: 8px; }
   .mini.sq { padding: 3px 8px; }
   .conds { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--bordure); }
   .todolist { border: 1px solid var(--bordure); border-radius: 4px; padding: 10px; margin-bottom: 8px; background: var(--blanc); }
-  .thead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .tag2 { font-size: 11px; font-weight: 700; color: var(--gris); text-transform: uppercase; letter-spacing: 0.03em; }
 </style>
